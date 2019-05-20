@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+
+	<body>
+		<input type="text" name="name" id="name" value="" />
+		<input type="text" name="urls" id="urls" value="" />
+		<input type="text" name="alexa" id="alexa" value="" />
+		<input type="text" name="country" id="country" value="" />
+		<button onclick="add()">添加</button>
+		<table border="1" cellspacing="0" cellpadding="10" id="tab" style="margin-top: 20px;">
+			<thead>
+				<th>序号</th>
+				<th>name</th>
+				<th>url</th>
+				<th>alexa</th>
+				<th>country</th>
+				<th>操作</th>
+			</thead>
+			<tbody id="tbody">
+
+			</tbody>
+		</table>
+		<pre>修改</pre>
+		<input type="text" name="names" id="names" value="" />
+		<input type="text" name="urls" id="urls1" value="" />
+		<input type="text" name="alexa" id="alexas" value="" />
+		<input type="text" name="country" id="countrys" value="" />
+		<script src="jquery.min.js"></script>
+		<script>
+			//默认展示数据
+			sqlData();
+			//获取数据动态遍历
+			function sqlData() {
+				$.ajax({
+					type: 'get',
+					url: 'http://localhost:3000/',
+					asasync: true,
+					success: function(res) {
+						var datas = [];
+						var tab = document.getElementById('tab');
+						var tbody = document.getElementById('tbody');
+						datas = JSON.parse(res);
+						tbody.innerHTML = ''
+						for(var i = 0; i < datas.length; i++) {
+							tbody.innerHTML += "<tr><td>" + i + "</td><td>" + datas[i].name + "</td><td>" + datas[i].url + "</td><td>" + datas[i].alexa + "</td><td>" + datas[i].country + "</td><td><a onclick='deleteRow(" + datas[i].id + ")'>删除</a><a onclick='updata(this," + datas[i].id + ")'>修改</a></td></tr>"
+						}
+						tab.append(tbody)
+					}
+				});
+			}
+			//删除
+			function deleteRow(val) {
+				console.log(val)
+				$.ajax({
+					type: "post",
+					url: "http://localhost:3000/del",
+					async: true,
+					data: {
+						id: val
+					},
+					success: function(res) {
+						sqlData(); //删除后更新页面。
+					}
+				});
+			}
+			//添加
+			function add() {
+				var names = document.getElementById('name').value;
+				var urls = document.getElementById('urls').value;
+				var alexa = document.getElementById('alexa').value;
+				var country = document.getElementById('country').value;
+				var datas = {
+					name: names,
+					url: urls,
+					alexa: alexa,
+					country: country,
+				}
+				console.log(datas)
+				$.ajax({
+					type: 'post',
+					url: 'http://localhost:3000/add',
+					data: datas,
+					async: true,
+					success: function(res) {
+						sqlData()
+					},
+					error: function(err) {}
+				})
+			}
+			//修改
+			function updata(val, id) {
+				//获取修改行的当前数据。
+				var x = $(val).parent().parent().find("td");
+				var currentName = x.eq(1).text();
+				var currenturls = x.eq(2).text();
+				var currentalexa = x.eq(3).text();
+				var currentcountry = x.eq(4).text();
+				//修改数据的值。
+				var names = document.getElementById('names').value;
+				var urls = document.getElementById('urls1').value;
+				var alexa = document.getElementById('alexas').value;
+				var country = document.getElementById('countrys').value;
+				//传给后台的数据，使用3目运算，判断input是否为空，如果是空，则使用当前数据，否者使用input修改数据。
+				var datas = {
+					id: id,
+					name: names == "" ? currentName : names,
+					url: urls == "" ? currenturls : urls,
+					alexa: alexa == "" ? currentalexa : alexa,
+					country: country == "" ? currentcountry : country
+				}
+				$.ajax({
+					type: 'post',
+					url: 'http://localhost:3000/updata',
+					data: datas,
+					async: true,
+					success: function(res) {
+						console.log(res, '3232')
+						sqlData()
+					}
+				})
+			}
+		</script>
+	</body>
+
+</html>
